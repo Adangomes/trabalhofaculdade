@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Head Mouse com Área de Trabalho</title>
+<title>Face Track - Sistema Profissional</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
@@ -10,21 +10,69 @@
 <style>
 body{
     margin:0;
-    background:#111827;
+    background:#0f172a;
     overflow:hidden;
     font-family:Arial;
     color:white;
 }
 
-h2{
-    text-align:center;
-    margin-top:20px;
+/* ===== TOPO ===== */
+.topbar{
+    width:100%;
+    height:60px;
+    background:#1e293b;
+    display:flex;
+    align-items:center;
+    padding-left:20px;
+    font-size:20px;
 }
 
+/* ===== TELAS ===== */
+#home{
+    height:100vh;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+}
+
+#workspace{
+    display:none;
+    height:100vh;
+    width:100%;
+    background:#1e293b;
+    position:relative;
+}
+
+/* ===== ÁREA INTERNA ===== */
+.desktop-area{
+    padding:40px;
+}
+
+.card{
+    background:#334155;
+    padding:30px;
+    border-radius:10px;
+    width:300px;
+    margin-bottom:20px;
+}
+
+/* ===== BOTÕES ===== */
+button{
+    padding:15px 25px;
+    font-size:18px;
+    border:none;
+    border-radius:8px;
+    background:#3b82f6;
+    color:white;
+    cursor:pointer;
+}
+
+/* ===== CURSOR ===== */
 #cursor{
     width:25px;
     height:25px;
-    background:#ff0000;
+    background:red;
     border-radius:50%;
     position:absolute;
     pointer-events:none;
@@ -40,6 +88,7 @@ h2{
     z-index:9999;
 }
 
+/* ===== WEBCAM ===== */
 video{
     position:fixed;
     bottom:10px;
@@ -48,39 +97,41 @@ video{
     border-radius:10px;
     border:2px solid white;
 }
-
-button{
-    padding:20px;
-    font-size:18px;
-    margin:20px;
-    cursor:pointer;
-}
-
-#workspace{
-    display:none;
-    text-align:center;
-    margin-top:100px;
-}
-
-#home{
-    text-align:center;
-}
 </style>
 </head>
 <body>
 
-<h2>FACE TRACK</h2>
-
+<!-- TELA INICIAL -->
 <div id="home">
-    <button onclick="iniciarCamera()">Iniciar Webcam</button>
+    <h1>FACE TRACK SYSTEM</h1>
     <br>
-    <button onclick="abrirWorkspace()">Abrir Área de Trabalho</button>
+    <button onclick="iniciarCamera()">Iniciar Webcam</button>
+    <br><br>
+    <button onclick="abrirWorkspace()">Entrar no Sistema</button>
 </div>
 
+<!-- ÁREA DE TRABALHO REAL -->
 <div id="workspace">
-    <h2>Área de Trabalho</h2>
-    <p>Sistema ativo para cadastro ou operações internas</p>
-    <button onclick="voltarHome()">Voltar para Tela Inicial</button>
+    <div class="topbar">
+        Sistema Corporativo - Área de Trabalho
+    </div>
+
+    <div class="desktop-area">
+        <div class="card">
+            <h3>Módulo de Cadastro</h3>
+            <p>Gerenciar usuários e dados internos</p>
+            <button>Entrar</button>
+        </div>
+
+        <div class="card">
+            <h3>Relatórios</h3>
+            <p>Visualizar relatórios do sistema</p>
+            <button>Acessar</button>
+        </div>
+
+        <br>
+        <button onclick="voltarHome()">Voltar para Tela Inicial</button>
+    </div>
 </div>
 
 <div id="cursor"></div>
@@ -107,7 +158,7 @@ function abrirWorkspace(){
 
 function voltarHome(){
     document.getElementById("workspace").style.display="none";
-    document.getElementById("home").style.display="block";
+    document.getElementById("home").style.display="flex";
 }
 
 /* ===== MEDIAPIPE ===== */
@@ -130,7 +181,6 @@ faceMesh.onResults(results => {
     if(results.multiFaceLandmarks.length > 0){
 
         const face = results.multiFaceLandmarks[0];
-
         const nose = face[1];
 
         const x = nose.x * window.innerWidth;
@@ -154,10 +204,9 @@ faceMesh.onResults(results => {
 
             let tempo = Date.now() - tempoInicio;
 
-            // barra proporcional aos 5 segundos
             progress.style.width = (tempo / 20) + "px";
 
-            if(tempo > 5000){   // 🔥 AGORA 5 SEGUNDOS
+            if(tempo > 5000){ // 5 segundos
                 elemento.click();
                 tempoInicio = null;
                 progress.style.width="0px";
