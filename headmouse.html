@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Mouse com Cabeça</title>
+<script src="https://cdn.jsdelivr.net/npm/face-api.js"></script>
+<style>
+body{
+    margin:0;
+    overflow:hidden;
+}
+#cursor{
+    width:20px;
+    height:20px;
+    background:red;
+    border-radius:50%;
+    position:absolute;
+    pointer-events:none;
+}
+video{
+    position:fixed;
+    bottom:10px;
+    right:10px;
+    width:200px;
+}
+</style>
+</head>
+<body>
+
+<div id="cursor"></div>
+<video id="video" autoplay></video>
+
+<script>
+const video = document.getElementById('video');
+const cursor = document.getElementById('cursor');
+
+navigator.mediaDevices.getUserMedia({video:{}})
+.then(stream => video.srcObject = stream);
+
+async function loadModels(){
+    await faceapi.nets.tinyFaceDetector.loadFromUri('https://cdn.jsdelivr.net/npm/face-api.js/models');
+}
+
+video.addEventListener('play', () => {
+    const canvas = faceapi.createCanvasFromMedia(video);
+    document.body.append(canvas);
+
+    setInterval(async () => {
+        const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions());
+        if(detections.length > 0){
+            const face = detections[0].box;
+            const x = (face.x / video.width) * window.innerWidth;
+            const y = (face.y / video.height) * window.innerHeight;
+            cursor.style.left = x + "px";
+            cursor.style.top = y + "px";
+        }
+    }, 100);
+});
+
+loadModels();
+</script>
+
+</body>
+</html>
