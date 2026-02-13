@@ -44,9 +44,15 @@ body{
     position:relative;
 }
 
+
 /* ===== ÁREA INTERNA ===== */
 .desktop-area{
-    padding:40px;
+    height:calc(100vh - 60px); /* desconta altura da topbar */
+    display:flex;
+    flex-direction:column;
+    align-items:center;      /* centraliza horizontal */
+    justify-content:center;  /* centraliza vertical */
+    gap:25px;                /* espaço entre cards */
 }
 
 .card{
