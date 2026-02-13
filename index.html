@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Sistema Corporativo de Acessibilidade</title>
+<title>Sistema Acessível - Controle por Cabeça</title>
 <script src="https://cdn.jsdelivr.net/npm/face-api.js"></script>
 
 <style>
@@ -11,73 +11,88 @@ body{
     font-family:Arial;
     background:#0f172a;
     color:white;
+    text-align:center;
     overflow:hidden;
 }
 
-#cadastro{
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    height:100vh;
+h1{
+    margin-top:20px;
 }
 
 input{
+    width:350px;
     padding:15px;
-    margin:10px;
     font-size:18px;
-    width:320px;
+    margin:10px;
     border-radius:8px;
     border:none;
 }
 
 button{
-    padding:15px 30px;
+    padding:15px 25px;
     font-size:18px;
     margin:10px;
-    cursor:pointer;
     border:none;
     border-radius:8px;
     background:#00c853;
     color:white;
+    cursor:pointer;
+}
+
+#keyboard{
+    margin-top:20px;
+}
+
+.key{
+    padding:15px;
+    margin:5px;
+    font-size:20px;
+    border-radius:8px;
+    background:#1e293b;
+    color:white;
 }
 
 #cursor{
-    width:25px;
-    height:25px;
+    width:30px;
+    height:30px;
     background:red;
     border-radius:50%;
     position:absolute;
     pointer-events:none;
-    transition:0.05s;
+    z-index:9999;
 }
 
 #progress{
-    width:40px;
-    height:5px;
+    width:0px;
+    height:6px;
     background:yellow;
     position:absolute;
     pointer-events:none;
+    z-index:9999;
 }
 
 video{
     position:fixed;
     bottom:10px;
     right:10px;
-    width:180px;
+    width:200px;
     border-radius:10px;
 }
 </style>
 </head>
 <body>
 
-<div id="cadastro">
-    <h1>Cadastro de Funcionário</h1>
-    <input type="text" id="nome" placeholder="Nome completo">
-    <input type="email" id="email" placeholder="E-mail">
-    <button id="btnCadastrar">Cadastrar</button>
-    <button id="btnLimpar">Limpar</button>
-</div>
+<h1>Cadastro - Controle por Movimento de Cabeça</h1>
+
+<input type="text" id="nome" placeholder="Nome completo">
+<br>
+<input type="email" id="email" placeholder="Email">
+<br>
+
+<button id="btnCadastrar">Cadastrar</button>
+<button id="btnLimpar">Limpar</button>
+
+<div id="keyboard"></div>
 
 <div id="cursor"></div>
 <div id="progress"></div>
@@ -85,47 +100,30 @@ video{
 
 <script>
 
-/* ================= VOZ PROFISSIONAL ================= */
+/* ================= TECLADO VIRTUAL ================= */
 
 let campoAtivo = null;
 
-function iniciarVoz(){
-    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-    recognition.lang = 'pt-BR';
-    recognition.continuous = true;
+document.getElementById("nome").addEventListener("focus",()=>campoAtivo=document.getElementById("nome"));
+document.getElementById("email").addEventListener("focus",()=>campoAtivo=document.getElementById("email"));
 
-    recognition.onresult = function(event){
-        let texto = event.results[event.results.length-1][0].transcript.trim().toLowerCase();
+function criarTeclado(){
+    const letras = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@.";
+    const keyboard = document.getElementById("keyboard");
 
-        if(texto.includes("nome")){
-            campoAtivo = document.getElementById("nome");
-            campoAtivo.focus();
-            return;
+    for(let letra of letras){
+        let btn = document.createElement("button");
+        btn.innerText = letra;
+        btn.className="key";
+        btn.onclick = ()=> {
+            if(campoAtivo){
+                campoAtivo.value += letra;
+            }
         }
-
-        if(texto.includes("email")){
-            campoAtivo = document.getElementById("email");
-            campoAtivo.focus();
-            return;
-        }
-
-        if(texto.includes("cadastrar")){
-            cadastrar();
-            return;
-        }
-
-        if(texto.includes("limpar")){
-            limpar();
-            return;
-        }
-
-        if(campoAtivo){
-            campoAtivo.value += " " + texto;
-        }
+        keyboard.appendChild(btn);
     }
-
-    recognition.start();
 }
+criarTeclado();
 
 /* ================= FUNÇÕES ================= */
 
@@ -134,7 +132,7 @@ function cadastrar(){
     const email = document.getElementById("email").value;
 
     if(nome === "" || email === ""){
-        alert("Preencha todos os campos");
+        alert("Preencha todos os campos!");
         return;
     }
 
@@ -146,28 +144,38 @@ function limpar(){
     document.getElementById("email").value="";
 }
 
-/* ================= HEAD MOUSE PROFISSIONAL ================= */
+document.getElementById("btnCadastrar").onclick=cadastrar;
+document.getElementById("btnLimpar").onclick=limpar;
+
+/* ================= MOUSE POR MOVIMENTO DE CABEÇA ================= */
 
 async function iniciarHeadMouse(){
 
-    const video = document.getElementById('video');
-    const cursor = document.getElementById('cursor');
-    const progress = document.getElementById('progress');
+    const video = document.getElementById("video");
+    const cursor = document.getElementById("cursor");
+    const progress = document.getElementById("progress");
 
-    await faceapi.nets.tinyFaceDetector.loadFromUri('https://cdn.jsdelivr.net/npm/face-api.js/models');
+    await faceapi.nets.tinyFaceDetector.loadFromUri(
+        "https://cdn.jsdelivr.net/npm/face-api.js/models"
+    );
 
-    navigator.mediaDevices.getUserMedia({video:{}})
-    .then(stream => video.srcObject = stream);
+    navigator.mediaDevices.getUserMedia({ video: {} })
+        .then(stream => video.srcObject = stream);
 
     let ultimoElemento = null;
     let tempoInicio = null;
 
-    video.addEventListener('play', () => {
+    video.addEventListener("play", () => {
 
         setInterval(async () => {
-            const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions());
+
+            const detections = await faceapi.detectAllFaces(
+                video,
+                new faceapi.TinyFaceDetectorOptions()
+            );
 
             if(detections.length > 0){
+
                 const face = detections[0].box;
 
                 const x = (face.x / video.videoWidth) * window.innerWidth;
@@ -177,19 +185,20 @@ async function iniciarHeadMouse(){
                 cursor.style.top = y + "px";
 
                 progress.style.left = x + "px";
-                progress.style.top = (y + 30) + "px";
+                progress.style.top = (y + 35) + "px";
 
                 const elemento = document.elementFromPoint(x,y);
 
                 if(elemento !== ultimoElemento){
                     ultimoElemento = elemento;
                     tempoInicio = Date.now();
-                    progress.style.width = "0px";
+                    progress.style.width="0px";
                 }
 
                 if(elemento && tempoInicio){
+
                     let tempo = Date.now() - tempoInicio;
-                    progress.style.width = (tempo/20) + "px";
+                    progress.style.width = (tempo/15) + "px";
 
                     if(tempo > 2000){
                         elemento.click();
@@ -198,16 +207,11 @@ async function iniciarHeadMouse(){
                     }
                 }
             }
+
         },120);
     });
 }
 
-/* ================= INICIAR SISTEMA ================= */
-
-document.getElementById("btnCadastrar").addEventListener("click", cadastrar);
-document.getElementById("btnLimpar").addEventListener("click", limpar);
-
-iniciarVoz();
 iniciarHeadMouse();
 
 </script>
